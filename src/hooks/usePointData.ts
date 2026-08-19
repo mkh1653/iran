@@ -13,7 +13,7 @@ export function usePointData() {
   useEffect(() => {
     const isMobile = window.innerWidth < 768;
 
-    loadInitialAssets("/dem.jpg", CELEBRITIES_DATA[0].imageUrl, isMobile, (p) =>
+    loadInitialAssets("/dem.png", CELEBRITIES_DATA[0].imageUrl, isMobile, (p) =>
       setProgress(p),
     ).then(({ mapData, firstBustData }) => {
       setMapData(mapData);

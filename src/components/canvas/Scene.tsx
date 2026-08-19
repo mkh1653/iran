@@ -27,7 +27,8 @@ export const Scene: React.FC<SceneProps> = ({ children }) => {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    containerRef.current.innerHTML = "";
     containerRef.current.appendChild(renderer.domElement);
 
     setSceneState(scene);
@@ -42,10 +43,10 @@ export const Scene: React.FC<SceneProps> = ({ children }) => {
 
     // animate the scene with a slow rotation
     let animationFrameId: number;
-    const clock = new THREE.Clock();
+    const clock = new THREE.Timer();
 
     const animate = () => {
-      scene.rotation.y = Math.sin(clock.getElapsedTime() * 0.15) * 0.05;
+      scene.rotation.y = Math.sin(clock.getElapsed() * 0.15) * 0.05;
       renderer.render(scene, camera);
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -61,6 +62,18 @@ export const Scene: React.FC<SceneProps> = ({ children }) => {
     return () => {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
+
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh || object instanceof THREE.Points) {
+          object.geometry?.dispose();
+          if (Array.isArray(object.material)) {
+            object.material.forEach((mat) => mat.dispose());
+          } else {
+            object.material?.dispose();
+          }
+        }
+      });
+
       renderer.dispose();
       if (containerRef.current) containerRef.current.innerHTML = "";
     };

@@ -13,22 +13,22 @@ export const CELEBRITIES_DATA: Celebrity[] = [
     name: "ابوعلی سینا",
     title: "پزشک، فیلسوف و دانشمند",
     era: "۳۷۰ - ۴۲۸ هجری قمری",
-    imageUrl: "/bust-avicenna.jpg",
+    imageUrl: "/bust-avicenna.png",
   },
-  {
-    id: "khayyam",
-    name: "حکیم عمر خیام",
-    title: "ریاضیدان، منجم و شاعر",
-    era: "۴۳۹ - ۵۱۷ هجری قمری",
-    imageUrl: "/bust-khayyam.jpg",
-  },
-  {
-    id: "ferdowsi",
-    name: "ابوالقاسم فردوسی",
-    title: "حماسه‌سرای بزرگ ایران",
-    era: "۳۲۹ - ۴۱۱ هجری قمری",
-    imageUrl: "/bust-ferdowsi.jpg",
-  },
+  // {
+  //   id: "khayyam",
+  //   name: "حکیم عمر خیام",
+  //   title: "ریاضیدان، منجم و شاعر",
+  //   era: "۴۳۹ - ۵۱۷ هجری قمری",
+  //   imageUrl: "/bust-khayyam.jpg",
+  // },
+  // {
+  //   id: "ferdowsi",
+  //   name: "ابوالقاسم فردوسی",
+  //   title: "حماسه‌سرای بزرگ ایران",
+  //   era: "۳۲۹ - ۴۱۱ هجری قمری",
+  //   imageUrl: "/bust-ferdowsi.jpg",
+  // },
 ];
 
 // cache for processed bust points to avoid reprocessing
@@ -43,7 +43,7 @@ export async function loadInitialAssets(
   demUrl: string,
   firstBustUrl: string,
   isMobile: boolean,
-  onProgress: (percent: number) => void
+  onProgress: (percent: number) => void,
 ): Promise<{ mapData: MapPointData; firstBustData: BustPointData }> {
   let demProgress = 0;
   let bustProgress = 0;
@@ -77,7 +77,7 @@ export async function loadInitialAssets(
  */
 export async function preloadNextBust(
   celebrityIndex: number,
-  pointCount: number
+  pointCount: number,
 ): Promise<BustPointData | null> {
   if (celebrityIndex >= CELEBRITIES_DATA.length) return null;
 
@@ -91,7 +91,7 @@ export async function preloadNextBust(
   try {
     const img = await loadImageWithProgress(celeb.imageUrl);
     const bustData = generateBustPoints(img, pointCount);
-    
+
     // save in cache
     processedBustsCache.set(celeb.id, bustData);
     return bustData;

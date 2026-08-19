@@ -6,10 +6,8 @@ import { gsap } from "gsap";
 import { MapPointData, BustPointData } from "@/utils/imageProcessor";
 import { preloadNextBust } from "@/utils/preloader";
 
-// @ts-ignore
-import { vertexShader } from "@/shaders/vertexShader.glsl";
-// @ts-ignore
-import { fragmentShader } from "@/shaders/fragmentShader.glsl";
+import vertexShader from "@/shaders/vertexShader.glsl";
+import fragmentShader from "@/shaders/fragmentShader.glsl";
 
 interface MapPointsProps {
   scene: THREE.Scene;
