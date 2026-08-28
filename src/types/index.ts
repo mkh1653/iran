@@ -2,6 +2,8 @@ export interface Celebrity {
   id: string;
   name: string;
   title: string;
-  era: string;
+  description: string;
+  birth: string;
+  death: string;
   imageUrl: string;
 }

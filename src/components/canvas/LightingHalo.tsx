@@ -4,10 +4,18 @@ import React from "react";
 
 export const LightingHalo: React.FC = () => {
   return (
-    <div className='fixed inset-0 pointer-events-none z-0 overflow-hidden'>
-      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[140px] pointer-events-none' />
-
-      <div className='absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] bg-emerald-400/5 rounded-full blur-[90px] pointer-events-none' />
-    </div>
+    <>
+      
+      <div
+        aria-hidden='true'
+        className='fixed inset-0 pointer-events-none'
+        style={{
+          background:
+            "radial-gradient(ellipse 72% 78% at 0% 0%, rgba(91, 214, 145, 0.1) 0%, rgba(62, 164, 105, 0.065) 24%, rgba(35, 103, 68, 0.03) 48%, rgba(5, 11, 8, 0) 82%)",
+          mixBlendMode: "screen",
+          zIndex: 100,
+        }}
+      />
+    </>
   );
 };

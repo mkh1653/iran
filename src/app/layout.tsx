@@ -19,9 +19,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang='en'
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang='en' className={`dark h-full antialiased`} dir='rtl'>
       <head>
         <link rel='preconnect' href='https://fonts.googleapis.com' />
         <link
@@ -34,7 +32,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           rel='stylesheet'
         />
       </head>
-      <body className='min-h-full flex flex-col' cz-shortcut-listen='true'>
+      <body
+        className='min-h-full flex flex-col bg-[rgb(var(--background))] text-[rgb(var(--foreground))]'
+        cz-shortcut-listen='true'>
         {children}
       </body>
     </html>

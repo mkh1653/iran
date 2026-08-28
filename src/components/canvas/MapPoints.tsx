@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { gsap } from "gsap";
 import { MapPointData, BustPointData } from "@/utils/imageProcessor";
@@ -10,7 +11,6 @@ import vertexShader from "@/shaders/vertexShader.glsl";
 import fragmentShader from "@/shaders/fragmentShader.glsl";
 
 interface MapPointsProps {
-  scene: THREE.Scene;
   mapData: MapPointData;
   initialBustData: BustPointData;
   mapToBustMorph: number;
@@ -20,7 +20,6 @@ interface MapPointsProps {
 }
 
 export const MapPoints: React.FC<MapPointsProps> = ({
-  scene,
   mapData,
   initialBustData,
   mapToBustMorph,
@@ -29,13 +28,12 @@ export const MapPoints: React.FC<MapPointsProps> = ({
   morphProgress,
 }) => {
   const materialRef = useRef<THREE.ShaderMaterial | null>(null);
-  const geometryRef = useRef<THREE.BufferGeometry | null>(null);
+  const morphStateRef = useRef({ value: 0 });
   const currentBustRef = useRef<BustPointData>(initialBustData);
   const nextBustRef = useRef<BustPointData | null>(null);
   const loadedIndexRef = useRef<number>(0);
 
-  useEffect(() => {
-    // create geometry and material for points
+  const geometry = useMemo(() => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute(
       "position",
@@ -53,50 +51,68 @@ export const MapPoints: React.FC<MapPointsProps> = ({
       new THREE.BufferAttribute(initialBustData.brightness, 1),
     );
 
-    geometryRef.current = geometry;
+    return geometry;
+  }, [mapData, initialBustData]);
 
-    const material = new THREE.ShaderMaterial({
+  const material = useMemo(() => {
+    return new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
       uniforms: {
         uTime: { value: 0 },
-        uSize: { value: 2.6 },
+        uSize: { value: 1.9 },
         uMorph: { value: 0 },
         uR: { value: 0 },
       },
       transparent: true,
       depthWrite: false,
     });
+  }, []);
 
+  useEffect(() => {
     materialRef.current = material;
-    const pointsMesh = new THREE.Points(geometry, material);
-    scene.add(pointsMesh);
 
-    // start animation
-    gsap.to(material.uniforms.uR, {
+    const revealTween = gsap.to(material.uniforms.uR, {
       value: 1,
-      duration: 2.2,
+      duration: 8,
       ease: "power3.out",
     });
 
     return () => {
-      scene.remove(pointsMesh);
+      revealTween.kill();
+      materialRef.current = null;
+    };
+  }, [material]);
+
+  useFrame((_, delta) => {
+    material.uniforms.uTime.value += delta;
+  });
+
+  useEffect(() => {
+    return () => {
       geometry.dispose();
       material.dispose();
     };
-  }, [scene, mapData, initialBustData]);
+  }, [geometry, material]);
 
-  // update uMorph
   useEffect(() => {
     if (materialRef.current) {
-      materialRef.current.uniforms.uMorph.value = mapToBustMorph;
+      const morphTween = gsap.to(morphStateRef.current, {
+        value: mapToBustMorph,
+        duration: 0.8,
+        ease: "power2.out",
+        overwrite: true,
+        onUpdate: () => {
+          materialRef.current!.uniforms.uMorph.value =
+            morphStateRef.current.value;
+        },
+      });
+
+      return () => morphTween.kill();
     }
   }, [mapToBustMorph]);
 
-  // preload next bust data and animate morphing between current and next bust
   useEffect(() => {
-    if (!geometryRef.current) return;
-
     if (currentIndex !== loadedIndexRef.current) {
       loadedIndexRef.current = currentIndex;
       preloadNextBust(nextIndex, mapData.count).then((nextData) => {
@@ -105,8 +121,7 @@ export const MapPoints: React.FC<MapPointsProps> = ({
     }
 
     if (nextBustRef.current && morphProgress > 0) {
-      const targetAttr = geometryRef.current.attributes
-        .aTB as THREE.BufferAttribute;
+      const targetAttr = geometry.attributes.aTB as THREE.BufferAttribute;
       const currentTargets = currentBustRef.current.targets;
       const nextTargets = nextBustRef.current.targets;
 
@@ -117,7 +132,7 @@ export const MapPoints: React.FC<MapPointsProps> = ({
       }
       targetAttr.needsUpdate = true;
     }
-  }, [currentIndex, nextIndex, morphProgress, mapData.count]);
+  }, [currentIndex, nextIndex, morphProgress, mapData.count, geometry]);
 
-  return null;
+  return <points geometry={geometry} material={material} />;
 };

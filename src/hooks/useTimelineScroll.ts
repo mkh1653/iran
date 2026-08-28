@@ -10,7 +10,7 @@ export interface TimelineState {
   mapToBustMorph: number;
 }
 
-export function useTimelineScroll(totalCelebrities: number) {
+export function useTimelineScroll(totalCelebrities: number, enabled = true) {
   const [state, setState] = useState<TimelineState>({
     currentIndex: 0,
     nextIndex: 1,
@@ -19,6 +19,8 @@ export function useTimelineScroll(totalCelebrities: number) {
   });
 
   useEffect(() => {
+    if (!enabled) return;
+
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const windowH = window.innerHeight;
@@ -46,7 +48,7 @@ export function useTimelineScroll(totalCelebrities: number) {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [totalCelebrities]);
+  }, [enabled, totalCelebrities]);
 
   return state;
 }

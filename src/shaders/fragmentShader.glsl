@@ -15,14 +15,14 @@ void main() {
     vec3 red   = vec3(0.86, 0.13, 0.18);
 
     // change color base of height (vh)
-    vec3 terrain = mix(deep, green, smoothstep(0.00, 0.30, vH));
-    terrain = mix(terrain, red, smoothstep(0.34, 0.68, vH));
-    terrain = mix(terrain, white, smoothstep(0.72, 0.96, vH));
+    vec3 terrain = mix(deep, green, smoothstep(0.00, 0.24, vH));
+    terrain = mix(terrain, red, smoothstep(0.22, 0.50, vH));
+    terrain = mix(terrain, white, smoothstep(0.34, 0.64, vH));
 
     // change color base of lighting (vB)
-    vec3 bust = mix(deep, green, smoothstep(0.05, 0.35, vB));
-    bust = mix(bust, red, smoothstep(0.35, 0.62, vB));
-    bust = mix(bust, white, smoothstep(0.62, 0.92, vB));
+    vec3 bust = mix(deep, green, smoothstep(0.05, 0.27, vB));
+    bust = mix(bust, red, smoothstep(0.24, 0.42, vB));
+    bust = mix(bust, white, smoothstep(0.36, 0.72, vB));
 
     // mix colors on scroll
     vec3 col = mix(terrain, bust, vMorph);

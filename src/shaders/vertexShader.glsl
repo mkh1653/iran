@@ -29,6 +29,13 @@ void main() {
     // mixing the position of the vertex between the map and the target position based on the stagger value
     vec3 p = mix(pMap, aTB, stagger);
 
+    // subtle idle motion keeps the completed portrait alive without moving the map
+    float idle = smoothstep(0.9, 1.0, morph);
+    float phase = uTime * 0.45 + aSeed * 6.28318;
+    p.x += sin(phase) * 0.035 * idle;
+    p.y += cos(phase * 0.82) * 0.045 * idle;
+    p.z += sin(phase * 0.68) * 0.025 * idle;
+
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
 
