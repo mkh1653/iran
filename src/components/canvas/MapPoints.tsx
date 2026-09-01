@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { gsap } from "gsap";
@@ -27,10 +27,11 @@ export const MapPoints: React.FC<MapPointsProps> = ({
   nextIndex,
   morphProgress,
 }) => {
-  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const [dataVersion, setDataVersion] = useState(0);
   const morphStateRef = useRef({ value: 0 });
   const currentBustRef = useRef<BustPointData>(initialBustData);
   const nextBustRef = useRef<BustPointData | null>(null);
+  const preloadRequestIdRef = useRef(0);
   const loadedIndexRef = useRef<number>(0);
 
   const geometry = useMemo(() => {
@@ -70,8 +71,6 @@ export const MapPoints: React.FC<MapPointsProps> = ({
   }, []);
 
   useEffect(() => {
-    materialRef.current = material;
-
     const revealTween = gsap.to(material.uniforms.uR, {
       value: 1,
       duration: 8,
@@ -80,7 +79,6 @@ export const MapPoints: React.FC<MapPointsProps> = ({
 
     return () => {
       revealTween.kill();
-      materialRef.current = null;
     };
   }, [material]);
 
@@ -96,15 +94,14 @@ export const MapPoints: React.FC<MapPointsProps> = ({
   }, [geometry, material]);
 
   useEffect(() => {
-    if (materialRef.current) {
+    if (material) {
       const morphTween = gsap.to(morphStateRef.current, {
         value: mapToBustMorph,
         duration: 0.8,
         ease: "power2.out",
         overwrite: true,
         onUpdate: () => {
-          materialRef.current!.uniforms.uMorph.value =
-            morphStateRef.current.value;
+          material.uniforms.uMorph.value = morphStateRef.current.value;
         },
       });
 
@@ -113,26 +110,55 @@ export const MapPoints: React.FC<MapPointsProps> = ({
   }, [mapToBustMorph]);
 
   useEffect(() => {
-    if (currentIndex !== loadedIndexRef.current) {
-      loadedIndexRef.current = currentIndex;
-      preloadNextBust(nextIndex, mapData.count).then((nextData) => {
-        if (nextData) nextBustRef.current = nextData;
-      });
-    }
+    const requestId = ++preloadRequestIdRef.current;
+    let isMounted = true;
+    nextBustRef.current = null;
 
-    if (nextBustRef.current && morphProgress > 0) {
-      const targetAttr = geometry.attributes.aTB as THREE.BufferAttribute;
-      const currentTargets = currentBustRef.current.targets;
-      const nextTargets = nextBustRef.current.targets;
+    Promise.all([
+      preloadNextBust(currentIndex, mapData.count),
+      preloadNextBust(nextIndex, mapData.count),
+    ]).then(([currentData, nextData]) => {
+      if (requestId !== preloadRequestIdRef.current) return;
 
-      for (let i = 0; i < currentTargets.length; i++) {
-        targetAttr.array[i] =
-          currentTargets[i] +
-          (nextTargets[i] - currentTargets[i]) * morphProgress;
+      if (currentData) {
+        currentBustRef.current = currentData;
       }
+
+      if (nextData) {
+        nextBustRef.current = nextData;
+      }
+      setDataVersion((version) => version + 1);
+
+      const targetAttr = geometry.attributes.aTB as THREE.BufferAttribute;
+      const activeTargets = currentBustRef.current.targets;
+
+      if (morphProgress <= 0.01) {
+        targetAttr.array.set(activeTargets);
+        targetAttr.needsUpdate = true;
+      }
+    });
+  }, [currentIndex, nextIndex, mapData.count, geometry]);
+
+  useEffect(() => {
+    if (!nextBustRef.current) return;
+
+    const targetAttr = geometry.attributes.aTB as THREE.BufferAttribute;
+    const currentTargets = currentBustRef.current.targets;
+    const nextTargets = nextBustRef.current.targets;
+
+    if (morphProgress <= 0.01) {
+      targetAttr.array.set(currentTargets);
       targetAttr.needsUpdate = true;
+      return;
     }
-  }, [currentIndex, nextIndex, morphProgress, mapData.count, geometry]);
+
+    for (let i = 0; i < currentTargets.length; i++) {
+      targetAttr.array[i] =
+        currentTargets[i] +
+        (nextTargets[i] - currentTargets[i]) * morphProgress;
+    }
+    targetAttr.needsUpdate = true;
+  }, [currentIndex, nextIndex, morphProgress, geometry, dataVersion]);
 
   return <points geometry={geometry} material={material} />;
 };

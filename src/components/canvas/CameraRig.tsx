@@ -71,7 +71,7 @@ export const CameraRig: React.FC<CameraRigProps> = ({
   }, [terrainPath]);
 
   useFrame((_, delta) => {
-    cameraLogic.initialize(currentPosition.current, currentTarget.current);
+    cameraLogic.initialize();
 
     idleTimeRef.current += delta;
 
