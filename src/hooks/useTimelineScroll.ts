@@ -1,4 +1,3 @@
-// src/hooks/useTimelineScroll.ts
 "use client";
 
 import { useEffect, useState } from "react";
@@ -35,7 +34,21 @@ export function useTimelineScroll(totalCelebrities: number, enabled = true) {
       const rawIndex = timelineScroll / sectionHeight;
       const currentIndex = Math.min(totalCelebrities - 1, Math.floor(rawIndex));
       const nextIndex = Math.min(totalCelebrities - 1, currentIndex + 1);
-      const morphProgress = rawIndex - Math.floor(rawIndex);
+
+      const sectionProgress = rawIndex - Math.floor(rawIndex);
+      const morphStart = 0.25;
+      const morphEnd = 0.65;
+
+      let morphProgress = 0;
+
+      if (sectionProgress < morphStart) {
+        morphProgress = 0;
+      } else if (sectionProgress < morphEnd) {
+        morphProgress =
+          (sectionProgress - morphStart) / (morphEnd - morphStart);
+      } else {
+        morphProgress = 1;
+      }
 
       setState({
         currentIndex,

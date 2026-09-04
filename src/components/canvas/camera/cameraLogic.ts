@@ -30,7 +30,7 @@ export class CameraLogic {
     this.terrainPath = terrainPath;
   }
 
-  initialize(position: THREE.Vector3, target: THREE.Vector3): void {
+  initialize(): void {
     if (this.initialized) return;
 
     this.calculateTerrainCameraPose(0);
